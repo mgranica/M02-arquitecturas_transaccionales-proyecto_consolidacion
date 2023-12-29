@@ -1,21 +1,20 @@
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
+from flask import current_app
 
 
-def connect_db(
-    host: str, database: str, user: str, password: str
-):
-    # create SQLalchemy engine
-    return  create_engine(f"mysql+pymysql://{user}:{password}@{host}/{database}")
-
-def insert_pictures_values(engine, file_id, file_path, size, date):
+def insert_pictures_values(file_id, file_path, size, date):
     ## TODO: reformulate insertion
     insert_stmt = f"INSERT INTO pictures (id, path, size, date) VALUES ('{file_id}', '{file_path}', '{size}', '{date}');"
+    # call engine
+    engine = current_app.db_engine
     with engine.connect() as conn:
         conn.execute(text(insert_stmt))
         conn.commit()
         
-def insert_tags_values(engine, file_id, tags, date):
+def insert_tags_values(file_id, tags, date):
     ## TODO: reformulate insertion
+    # call engine
+    engine = current_app.db_engine
     for tag in tags:
         tag, confidence = tag["tag"], tag["confidence"]
         insert_stmt = f"INSERT INTO tags (tag, picture_id, confidence, date) VALUES ('{tag}', '{file_id}', '{confidence}', '{date}');"
@@ -23,7 +22,7 @@ def insert_tags_values(engine, file_id, tags, date):
             conn.execute(text(insert_stmt))
             conn.commit()
             
-def select_images(engine, min_date=None, max_date=None , tags=None):
+def select_images(min_date=None, max_date=None , tags=None):
     sql_query = """
         SELECT p.id, p.size, p.date,
             GROUP_CONCAT(t.tag) AS tags,
@@ -47,14 +46,15 @@ def select_images(engine, min_date=None, max_date=None , tags=None):
 
     # Group by id, date, and size
     sql_query += " GROUP BY p.id, p.date, p.size"
-
+    # call engine
+    engine = current_app.db_engine
     # Execute the query and return the results
     with engine.connect() as conn:
         result = conn.execute(text(sql_query), params)
         
     return result
 
-def select_image(engine, picture_id):
+def select_image(picture_id):
     sql_query = """
         SELECT p.id, p.size, p.date,
             GROUP_CONCAT(t.tag) AS tags,
@@ -65,10 +65,11 @@ def select_image(engine, picture_id):
     """
     # set params
     params = dict(picture_id=picture_id)
+    # call engine
+    engine = current_app.db_engine
     # Execute the query and return the results
     with engine.connect() as conn:
         result = conn.execute(text(sql_query), params)
-    columns = result.keys()
     
     return result
 
@@ -94,7 +95,10 @@ def select_tags(engine, min_date=None, max_date=None):
 
     # Group by id, date, and size
     sql_query += " GROUP BY t.tag"
-
+    
+    # call engine
+    engine = current_app.db_engine
+    
     # Execute the query and return the results
     with engine.connect() as conn:
         result = conn.execute(text(sql_query), params)

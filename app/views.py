@@ -1,5 +1,6 @@
 from flask import Blueprint, request, make_response
 from . import controller
+from flask import current_app
 import datetime
 
 bp = Blueprint('convert', __name__, url_prefix='/')
@@ -7,20 +8,13 @@ bp = Blueprint('convert', __name__, url_prefix='/')
 
 @bp.post("/convert")
 def post_image():
-    ## TODO docker environment definition
-    host = request.args.get("host",'localhost')
-    database = request.args.get("database",'Pictures')
-    user = request.args.get("user",'mbit')
-    password = request.args.get("password",'mbit')
+
     credentials_path = "./credentials.json"
     
     image_path = request.json.get("image")
     min_confidence = request.json.get("min_confidence", 80)
     date = str(datetime.datetime.now())
-    # create engine
-    engine = controller.create_sql_engine(
-        host, database, user, password
-    )
+
     # Get credentials
     credentials = controller.get_credentials(credentials_path)
     # encode image
@@ -33,11 +27,11 @@ def post_image():
     # Store image
     # insert into Pictures Table
     controller.insert_pictures(
-        engine, upload_info["id"], upload_info["path"], upload_info["size"], date
+        upload_info["id"], upload_info["path"], upload_info["size"], date
     )
     # insert into Tags Table
     controller.insert_tags(
-        engine, upload_info["id"], tags, date
+        upload_info["id"], tags, date
     )
 
     return {
@@ -51,63 +45,31 @@ def post_image():
 
 @bp.get("/images")
 def get_images():
-    ## TODO docker environment definition
-    host = request.args.get("host",'localhost')
-    database = request.args.get("database",'Pictures')
-    user = request.args.get("user",'mbit')
-    password = request.args.get("password",'mbit')
-    
     min_date = request.args.get("min_date", None)
     max_date = request.args.get("max_date", None)
     tags = request.args.get("tags", None)
     
-    # create engine
-    engine = controller.create_sql_engine(
-        host, database, user, password
-    )
-    
     # select images
-    response = controller.get_images(engine, min_date, max_date , tags)
+    response = controller.get_images(min_date, max_date , tags)
     
     return response
 
 
 @bp.get("/images/<picture_id>")
 def get_image(picture_id):
-    ## TODO docker environment definition
-    host = request.args.get("host",'localhost')
-    database = request.args.get("database",'Pictures')
-    user = request.args.get("user",'mbit')
-    password = request.args.get("password",'mbit')
-    
-    # create engine
-    engine = controller.create_sql_engine(
-        host, database, user, password
-    )
     
     # select images
-    response = controller.get_image(engine, picture_id)
+    response = controller.get_image(picture_id)
     
     return response
 
 
 @bp.get("/tags")
-def get_tags():
-    ## TODO docker environment definition
-    host = request.args.get("host",'localhost')
-    database = request.args.get("database",'Pictures')
-    user = request.args.get("user",'mbit')
-    password = request.args.get("password",'mbit')
-    
+def get_tags():    
     min_date = request.args.get("min_date", None)
     max_date = request.args.get("max_date", None)
     
-    # create engine
-    engine = controller.create_sql_engine(
-        host, database, user, password
-    )
-    
     # select images
-    response = controller.get_tags(engine, min_date, max_date)
+    response = controller.get_tags(min_date, max_date)
     
     return response

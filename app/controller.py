@@ -8,12 +8,6 @@ from typing import Dict
 import models
 
 
-def create_sql_engine(
-    host: str, database: str, user: str, password: str
-):
-    # create SQLalchemy engine
-    return  models.create_engine(f"mysql+pymysql://{user}:{password}@{host}/{database}")
-
 def get_credentials(credentials_path):
     # Load credentials from the JSON file
     with open(credentials_path, 'r') as file:
@@ -72,15 +66,15 @@ def extract_tags(image_url: str, credentials: Dict[str,str], min_confidence: int
     ]
     return tags
 
-def insert_pictures(engine, file_id, file_path, size, date):
-    models.insert_pictures_values(engine, file_id, file_path, size, date)
+def insert_pictures(file_id, file_path, size, date):
+    models.insert_pictures_values(file_id, file_path, size, date)
   
-def insert_tags(engine, file_id, tags, date):
-    models.insert_tags_values(engine, file_id, tags, date)
+def insert_tags(file_id, tags, date):
+    models.insert_tags_values(file_id, tags, date)
 
-def get_images(engine, min_date=None, max_date=None , tags=None):
+def get_images(min_date=None, max_date=None , tags=None):
     # Get result
-    result = models.select_images(engine, min_date, max_date ,tags)
+    result = models.select_images(min_date, max_date ,tags)
     # Format response
     columns = result.keys()
     response = [
@@ -92,9 +86,9 @@ def get_images(engine, min_date=None, max_date=None , tags=None):
     ]
     return response
 
-def get_image(engine, picture_id):
+def get_image(picture_id):
     # Get result
-    result = models.select_image(engine, picture_id)
+    result = models.select_image(picture_id)
     # Format response
     columns = result.keys()
     response = [
@@ -106,9 +100,9 @@ def get_image(engine, picture_id):
     ]
     return response
    
-def get_tags(engine, min_date=None, max_date=None):
+def get_tags(min_date=None, max_date=None):
     # Get result
-    result = models.select_tags(engine, min_date, max_date)
+    result = models.select_tags(min_date, max_date)
     # Format Response
     columns = result.keys()
     response = [
