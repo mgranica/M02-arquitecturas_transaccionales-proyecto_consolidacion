@@ -42,7 +42,7 @@ def select_images(min_date=None, max_date=None , tags=None):
         params["max_date"] = max_date
     if tags is not None:
         sql_query += " AND t.tags IN :tags"
-        params["tags"]: ", ".join(tags)
+        params["tags"]: tags
 
     # Group by id, date, and size
     sql_query += " GROUP BY p.id, p.date, p.size"
