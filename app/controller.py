@@ -3,6 +3,7 @@ from imagekitio import ImageKit
 import requests
 import base64
 import json
+import os
 from typing import Dict
 
 import models
@@ -41,13 +42,32 @@ def upload_public_url(img_b64, credentials: Dict[str,str], file_name="my_file_na
         "size": upload_info.size
     }
 
-def delete_public_url(img_b64, credentials: Dict[str,str], file_id):
+def delete_public_url(credentials: Dict[str,str], file_id: str):
     # Set API connection credentials
     imagekit = set_api_connection(credentials)
     # delete an image
-    delete = imagekit.delete_file(file_id=file_id)
+    result = imagekit.delete_file(file_id=file_id)
     
-    return delete
+    return result
+
+def decode_and_save_image(encoded_data, file_name, extension=".jpg"):
+    result_path = os.environ.get("RESULT_PATH", "../static/results")
+
+    save_path = os.path.join(result_path, file_name + extension)
+    print(save_path)
+    try:
+        # Decode the base64-encoded string
+        decoded_data = base64.b64decode(encoded_data)
+
+        # Save the decoded binary data as a .jpg file
+        with open(save_path, mode="wb") as decoded_img:
+            decoded_img.write(decoded_data)
+
+        print(f"Image saved to {save_path}")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
 
 def extract_tags(image_url: str, credentials: Dict[str,str], min_confidence: int):
     response = requests.get(

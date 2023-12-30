@@ -64,3 +64,6 @@ venv.bak/
 
 # Credentials
 */credentials.json
+
+# results
+static/results/*

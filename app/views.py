@@ -1,6 +1,6 @@
 from flask import Blueprint, request, make_response
 from . import controller
-from flask import current_app
+import os
 import datetime
 
 bp = Blueprint('convert', __name__, url_prefix='/')
@@ -12,6 +12,7 @@ def post_image():
     credentials_path = "./credentials.json"
     
     image_path = request.json.get("image")
+    image_name = os.path.splitext(os.path.basename(image_path))[0]
     min_confidence = request.json.get("min_confidence", 80)
     date = str(datetime.datetime.now())
 
@@ -20,11 +21,13 @@ def post_image():
     # encode image
     img_b64 = controller.encode_image(image_path)
     # generate public URL
-    upload_info = controller.upload_public_url(img_b64, credentials["imagekit"])
+    upload_info = controller.upload_public_url(img_b64, credentials["imagekit"], image_name)
     # Tag extraction from public URL image
     tags = controller.extract_tags(upload_info["url"], credentials["imagga"], min_confidence)
     # delete public URL image
+    delete_img = controller.delete_public_url(credentials["imagekit"], upload_info["id"])
     # Store image
+    controller.decode_and_save_image(img_b64, upload_info["id"])
     # insert into Pictures Table
     controller.insert_pictures(
         upload_info["id"], upload_info["path"], upload_info["size"], date
