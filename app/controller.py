@@ -6,7 +6,7 @@ import json
 import os
 from typing import Dict
 
-import models
+from . import models
 
 
 def get_credentials(credentials_path):
