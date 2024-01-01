@@ -10,7 +10,7 @@ bp = Blueprint('images', __name__, url_prefix='/')
 def post_image():
     
     encoded_data = request.json.get("data")
-    min_confidence = request.json.get("min_confidence", 80)
+    min_confidence = int(request.args.get("min_confidence", 80))
     date = str(datetime.datetime.now())
 
     # generate public URL
@@ -21,7 +21,7 @@ def post_image():
     delete_img = controller.delete_public_url(upload_info["id"])
     # decode data
     decoded_data = controller.decode_image(encoded_data)
-    # Store image
+    # Save image
     controller.save_image(decoded_data, upload_info["id"])
     # insert into Pictures Table
     controller.insert_pictures(
