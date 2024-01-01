@@ -9,7 +9,8 @@ from typing import Dict
 from . import models
 
 
-def get_credentials(credentials_path):
+def get_credentials():
+    credentials_path = os.environ.get("CREDENTIAL_PATH", "./credentials.json")
     # Load credentials from the JSON file
     with open(credentials_path, 'r') as file:
         credentials = json.load(file)

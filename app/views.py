@@ -8,8 +8,6 @@ bp = Blueprint('convert', __name__, url_prefix='/')
 
 @bp.post("/convert")
 def post_image():
-
-    credentials_path = "./credentials.json"
     
     image_path = request.json.get("image")
     image_name = os.path.splitext(os.path.basename(image_path))[0]
@@ -17,7 +15,7 @@ def post_image():
     date = str(datetime.datetime.now())
 
     # Get credentials
-    credentials = controller.get_credentials(credentials_path)
+    credentials = controller.get_credentials()
     # encode image
     img_b64 = controller.encode_image(image_path)
     # generate public URL

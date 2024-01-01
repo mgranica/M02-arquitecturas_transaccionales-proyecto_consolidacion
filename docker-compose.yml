@@ -27,10 +27,12 @@ services:
     ports:
       - "5005:5005"
     environment:
+      - CREDENTIAL_PATH=/app/app/credentials.json
       - HOST_APP=db_container
       - DATABASE_APP=Pictures
       - USER_APP=mbit
       - PASSWORD_APP=mbit
+      - RESULT_PATH=/static/results
     volumes:
       - ./static:/static
     depends_on:
