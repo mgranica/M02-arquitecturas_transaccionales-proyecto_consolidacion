@@ -1,27 +1,21 @@
 
 from imagekitio import ImageKit
+from flask import current_app
 import requests
 import base64
-import json
 import os
 from typing import Dict
 
 from . import models
 
 
-def get_credentials():
-    credentials_path = os.environ.get("CREDENTIAL_PATH", "./credentials.json")
-    # Load credentials from the JSON file
-    with open(credentials_path, 'r') as file:
-        credentials = json.load(file)
-    return credentials
-
 def encode_image(image_path):
     with open(image_path, mode="rb") as img:
         img_b64 = base64.b64encode(img.read())
     return img_b64
 
-def set_api_connection(credentials):
+def set_api_connection(api="imagekit"):
+    credentials = current_app.credentials[api]
     # Set API connection credentials
     imagekit = ImageKit(
         public_key=credentials["public_key"],
@@ -30,9 +24,9 @@ def set_api_connection(credentials):
     )
     return imagekit
 
-def upload_public_url(img_b64, credentials: Dict[str,str], file_name="my_file_name.jpg"):
+def upload_public_url(img_b64, file_name="my_file_name.jpg"):
     # Set API connection credentials
-    imagekit = set_api_connection(credentials)
+    imagekit = set_api_connection()
     # upload image
     upload_info = imagekit.upload(file=img_b64, file_name=file_name)
     
@@ -43,9 +37,9 @@ def upload_public_url(img_b64, credentials: Dict[str,str], file_name="my_file_na
         "size": upload_info.size
     }
 
-def delete_public_url(credentials: Dict[str,str], file_id: str):
+def delete_public_url(file_id: str):
     # Set API connection credentials
-    imagekit = set_api_connection(credentials)
+    imagekit = set_api_connection()
     # delete an image
     result = imagekit.delete_file(file_id=file_id)
     
@@ -72,7 +66,8 @@ def save_image(decoded_data, file_name, extension=".jpg"):
         return None
 
 
-def extract_tags(image_url: str, credentials: Dict[str,str], min_confidence: int):
+def extract_tags(image_url: str, min_confidence: int, api="imagga"):
+    credentials = current_app.credentials[api]
     response = requests.get(
             f"https://api.imagga.com/v2/tags?image_url={image_url}", 
             auth=(

@@ -3,24 +3,22 @@ from . import controller
 import os
 import datetime
 
-bp = Blueprint('convert', __name__, url_prefix='/')
+bp = Blueprint('images', __name__, url_prefix='/')
 
 
-@bp.post("/convert")
+@bp.post("/images")
 def post_image():
     
     encoded_data = request.json.get("data")
     min_confidence = request.json.get("min_confidence", 80)
     date = str(datetime.datetime.now())
 
-    # Get credentials
-    credentials = controller.get_credentials()
     # generate public URL
-    upload_info = controller.upload_public_url(encoded_data, credentials["imagekit"])
+    upload_info = controller.upload_public_url(encoded_data)
     # Tag extraction from public URL image
-    tags = controller.extract_tags(upload_info["url"], credentials["imagga"], min_confidence)
+    tags = controller.extract_tags(upload_info["url"], min_confidence)
     # delete public URL image
-    delete_img = controller.delete_public_url(credentials["imagekit"], upload_info["id"])
+    delete_img = controller.delete_public_url(upload_info["id"])
     # decode data
     decoded_data = controller.decode_image(encoded_data)
     # Store image
