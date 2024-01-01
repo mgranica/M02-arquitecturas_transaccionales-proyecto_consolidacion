@@ -51,23 +51,25 @@ def delete_public_url(credentials: Dict[str,str], file_id: str):
     
     return result
 
-def decode_and_save_image(encoded_data, file_name, extension=".jpg"):
+
+def decode_image(encoded_data):
+    # Decode the base64-encoded string
+    return base64.b64decode(encoded_data)
+
+def save_image(decoded_data, file_name, extension=".jpg"):
     result_path = os.environ.get("RESULT_PATH", "../static/results")
-
     save_path = os.path.join(result_path, file_name + extension)
-    print(save_path)
     try:
-        # Decode the base64-encoded string
-        decoded_data = base64.b64decode(encoded_data)
-
         # Save the decoded binary data as a .jpg file
         with open(save_path, mode="wb") as decoded_img:
             decoded_img.write(decoded_data)
 
         print(f"Image saved to {save_path}")
+        return decoded_data
 
     except Exception as e:
         print(f"An error occurred: {e}")
+        return None
 
 
 def extract_tags(image_url: str, credentials: Dict[str,str], min_confidence: int):

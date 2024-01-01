@@ -9,23 +9,22 @@ bp = Blueprint('convert', __name__, url_prefix='/')
 @bp.post("/convert")
 def post_image():
     
-    image_path = request.json.get("image")
-    image_name = os.path.splitext(os.path.basename(image_path))[0]
+    encoded_data = request.json.get("data")
     min_confidence = request.json.get("min_confidence", 80)
     date = str(datetime.datetime.now())
 
     # Get credentials
     credentials = controller.get_credentials()
-    # encode image
-    img_b64 = controller.encode_image(image_path)
     # generate public URL
-    upload_info = controller.upload_public_url(img_b64, credentials["imagekit"], image_name)
+    upload_info = controller.upload_public_url(encoded_data, credentials["imagekit"])
     # Tag extraction from public URL image
     tags = controller.extract_tags(upload_info["url"], credentials["imagga"], min_confidence)
     # delete public URL image
     delete_img = controller.delete_public_url(credentials["imagekit"], upload_info["id"])
+    # decode data
+    decoded_data = controller.decode_image(encoded_data)
     # Store image
-    controller.decode_and_save_image(img_b64, upload_info["id"])
+    controller.save_image(decoded_data, upload_info["id"])
     # insert into Pictures Table
     controller.insert_pictures(
         upload_info["id"], upload_info["path"], upload_info["size"], date
@@ -40,7 +39,7 @@ def post_image():
         "size": upload_info["size"],
         "date": date,
         "tags": tags,
-        #"data": img_b64
+        #"data": decoded_data
     }
 
 
