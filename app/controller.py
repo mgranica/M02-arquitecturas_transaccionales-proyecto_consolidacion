@@ -5,14 +5,10 @@ import requests
 import base64
 import os
 from typing import Dict
+from functools import wraps
 
 from . import models
 
-
-def encode_image(image_path):
-    with open(image_path, mode="rb") as img:
-        img_b64 = base64.b64encode(img.read())
-    return img_b64
 
 def set_api_connection(api="imagekit"):
     credentials = current_app.credentials[api]
@@ -24,6 +20,19 @@ def set_api_connection(api="imagekit"):
     )
     return imagekit
 
+def exception_handler(error_description):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                # Log the exception and re-raise it for further handling
+                raise Exception(f"{error_description}: {str(e)}")
+        return wrapper
+    return decorator
+
+@exception_handler("Error uploading public URL")
 def upload_public_url(img_b64, file_name="my_file_name.jpg"):
     # Set API connection credentials
     imagekit = set_api_connection()
@@ -37,6 +46,7 @@ def upload_public_url(img_b64, file_name="my_file_name.jpg"):
         "size": upload_info.size
     }
 
+@exception_handler("Error deleting public URL")
 def delete_public_url(file_id: str):
     # Set API connection credentials
     imagekit = set_api_connection()
@@ -50,49 +60,59 @@ def decode_image(encoded_data):
     # Decode the base64-encoded string
     return base64.b64decode(encoded_data)
 
+@exception_handler("Error saving Image")
 def save_image(decoded_data, file_name, extension=".jpg"):
     result_path = os.environ.get("RESULT_PATH", "../static/results")
+    if not os.path.exists(result_path):
+        os.makedirs(result_path)
     save_path = os.path.join(result_path, file_name + extension)
-    try:
-        # Save the decoded binary data as a .jpg file
-        with open(save_path, mode="wb") as decoded_img:
-            decoded_img.write(decoded_data)
+    # Save the decoded binary data as a .jpg file
+    with open(save_path, mode="wb") as decoded_img:
+        decoded_img.write(decoded_data)
+    print(f"Image saved to {save_path}")
+    return decoded_data
 
-        print(f"Image saved to {save_path}")
-        return decoded_data
-
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return None
-
-
+@exception_handler("Error during tags extraction")
 def extract_tags(image_url: str, min_confidence: int, api="imagga"):
-    credentials = current_app.credentials[api]
-    response = requests.get(
-            f"https://api.imagga.com/v2/tags?image_url={image_url}", 
-            auth=(
-                credentials["api_key"], credentials["api_secret"]
-            )
-    )
-    tags = [
-        {
-            "tag": t["tag"]["en"],
-            "confidence": t["confidence"]
-        }
-        for t in response.json()["result"]["tags"]
-        if t["confidence"] > min_confidence
-    ]
-    return tags
+    try:
+        credentials = current_app.credentials[api]
 
+        if not credentials or not credentials.get("api_key") or not credentials.get("api_secret"):
+            raise Exception("Invalid or missing Imagga API credentials")
+
+
+        response = requests.get(
+                f"https://api.imagga.com/v2/tags?image_url={image_url}", 
+                auth=(
+                    credentials["api_key"], credentials["api_secret"]
+                )
+        )
+        tags = [
+            {
+                "tag": t["tag"]["en"],
+                "confidence": t["confidence"]
+            }
+            for t in response.json()["result"]["tags"]
+            if t["confidence"] > min_confidence
+        ]
+        return tags
+    except Exception as e:
+        raise Exception(f"Imagga API connection error: {str(e)}")
+
+@exception_handler("Error inserting records in Pictures table")
 def insert_pictures(file_id, file_path, size, date):
     models.insert_pictures_values(file_id, file_path, size, date)
-  
+
+@exception_handler("Error inserting records in Tags table") 
 def insert_tags(file_id, tags, date):
     models.insert_tags_values(file_id, tags, date)
 
+@exception_handler("Query images Error")
 def get_images(min_date=None, max_date=None , tags=None):
     # Get result
     result = models.select_images(min_date, max_date ,tags)
+    if not result:
+        raise Exception(f"No Images were collected with the tags: {tags}")
     # Format response
     columns = result.keys()
     response = [
@@ -104,9 +124,12 @@ def get_images(min_date=None, max_date=None , tags=None):
     ]
     return response
 
+@exception_handler("Query image Error")
 def get_image(picture_id):
     # Get result
     result = models.select_image(picture_id)
+    if not result:
+        raise Exception(f"{picture_id} no included in the DB")
     # Format response
     columns = result.keys()
     response = [
@@ -117,10 +140,13 @@ def get_image(picture_id):
         ]
     ]
     return response
-   
+
+@exception_handler("Query tags Error") 
 def get_tags(min_date=None, max_date=None):
     # Get result
     result = models.select_tags(min_date, max_date)
+    if not result:
+        raise Exception(f"No tags were generated within those dates")
     # Format Response
     columns = result.keys()
     response = [
