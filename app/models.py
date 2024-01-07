@@ -13,8 +13,11 @@ def sql_exception_handler(error_description):
             except Exception as e:
                 # Log the exception and re-raise it for further handling
                 raise Exception(f"{error_description}: {str(e)}")
+
         return wrapper
+
     return decorator
+
 
 @sql_exception_handler("Connection error with MySQL DB")
 def insert_pictures_values(file_id, file_path, size, date):
@@ -26,7 +29,8 @@ def insert_pictures_values(file_id, file_path, size, date):
         conn.execute(text(insert_stmt))
         conn.commit()
 
-@sql_exception_handler("Connection error with MySQL DB")       
+
+@sql_exception_handler("Connection error with MySQL DB")
 def insert_tags_values(file_id, tags, date):
     ## TODO: migrate to ORM design
     # call engine
@@ -39,8 +43,9 @@ def insert_tags_values(file_id, tags, date):
             conn.execute(text(insert_stmt))
             conn.commit()
 
-@sql_exception_handler("Connection error with MySQL DB")            
-def select_images(min_date=None, max_date=None , tags=None):
+
+@sql_exception_handler("Connection error with MySQL DB")
+def select_images(min_date=None, max_date=None, tags=None):
     sql_query = """
         SELECT p.id, p.size, p.date,
             GROUP_CONCAT(t.tag) AS tags,
@@ -60,7 +65,7 @@ def select_images(min_date=None, max_date=None , tags=None):
         params["max_date"] = max_date
     if tags is not None:
         sql_query += " AND t.tag IN :tags"
-        params["tags"]= tags
+        params["tags"] = tags
 
     # Group by id, date, and size
     sql_query += " GROUP BY p.id, p.date, p.size"
@@ -69,8 +74,9 @@ def select_images(min_date=None, max_date=None , tags=None):
     # Context manager to execute the query and return the results
     with engine.connect() as conn:
         result = conn.execute(text(sql_query), params)
-        
+
     return result
+
 
 @sql_exception_handler("Connection error with MySQL DB")
 def select_image(picture_id):
@@ -89,8 +95,9 @@ def select_image(picture_id):
     # Context manager to execute the query and return the results
     with engine.connect() as conn:
         result = conn.execute(text(sql_query), params)
-    
+
     return result
+
 
 @sql_exception_handler("Connection error with MySQL DB")
 def select_tags(engine, min_date=None, max_date=None):
@@ -115,10 +122,10 @@ def select_tags(engine, min_date=None, max_date=None):
 
     # Group by id, date, and size
     sql_query += " GROUP BY t.tag"
-    
+
     # call engine
     engine = current_app.db_engine
-    
+
     # Context manager to execute the query and return the results
     with engine.connect() as conn:
         result = conn.execute(text(sql_query), params)
