@@ -118,7 +118,7 @@ def insert_tags(file_id, tags, date):
 def get_images(min_date=None, max_date=None, tags=None):
     # Get result
     result = models.select_images(min_date, max_date, tags)
-    if not result:
+    if result.rowcount == 0:
         raise Exception(f"No Images were collected with the tags: {tags}")
     # Format response
     columns = result.keys()
@@ -142,7 +142,7 @@ def get_images(min_date=None, max_date=None, tags=None):
 def get_image(picture_id):
     # Get result
     result = models.select_image(picture_id)
-    if not result:
+    if result.rowcount == 0:
         raise Exception(f"{picture_id} no included in the DB")
     # Format response
     columns = result.keys()
@@ -166,7 +166,7 @@ def get_image(picture_id):
 def get_tags(min_date=None, max_date=None):
     # Get result
     result = models.select_tags(min_date, max_date)
-    if not result:
+    if result.rowcount == 0:
         raise Exception(f"No tags were generated within those dates")
     # Format Response
     columns = result.keys()

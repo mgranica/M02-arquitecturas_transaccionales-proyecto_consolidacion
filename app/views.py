@@ -108,14 +108,7 @@ def get_image(picture_id):
         # Call controller to get the image
         response = controller.get_image(picture_id)
 
-        # Check if the response is empty or contains an error
-        if not response:
-            response = make_response(
-                jsonify({"error": f"Image with ID {picture_id} not found"}), 404
-            )
-            return response
-
-        return jsonify(response)
+        return response
 
     except ValueError as value_error:
         response = make_response(
@@ -125,7 +118,7 @@ def get_image(picture_id):
 
     except Exception as e:
         response = make_response(
-            jsonify({"error": f"Invalid picture_id: {str(value_error)}"}), 400
+            jsonify({"error": f"Image with ID {picture_id} not found"}), 404
         )
         return response
 
