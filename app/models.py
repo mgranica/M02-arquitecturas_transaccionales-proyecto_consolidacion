@@ -100,7 +100,7 @@ def select_image(picture_id):
 
 
 @sql_exception_handler("Connection error with MySQL DB")
-def select_tags(engine, min_date=None, max_date=None):
+def select_tags(min_date=None, max_date=None):
     sql_query = """
         SELECT t.tag tag,
             COUNT(DISTINCT(t.picture_id)) n_images,
@@ -108,16 +108,17 @@ def select_tags(engine, min_date=None, max_date=None):
             MAX(t.confidence) max_confidence,
             AVG(t.confidence) mean_confidence
         FROM tags t
+        JOIN pictures p ON t.picture_id = p.id
         WHERE 1=1
     """
 
     # Conditionally filters based on parameters
     params = {}
     if min_date is not None:
-        sql_query += " AND t.date > :min_date"
+        sql_query += " AND p.date > :min_date"
         params["min_date"] = min_date
     if max_date is not None:
-        sql_query += " AND t.date < :max_date"
+        sql_query += " AND p.date < :max_date"
         params["max_date"] = max_date
 
     # Group by id, date, and size
