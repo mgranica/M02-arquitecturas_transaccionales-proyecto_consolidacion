@@ -49,7 +49,7 @@ To run the application locally, follow these steps:
     ```
 
 5. Set up API credentials
-  * create the file `app/credentials.json` to set the apis credentials. you can use the template provided below:
+  * create the file `/app/credentials.json` to set the apis credentials. you can use the template provided below:
     ```json
     {
     "imagga": {
@@ -85,7 +85,7 @@ To run the application locally, follow these steps:
 
 ### Image Upload
 
-- **Endpoint**: `/upload`
+- **Endpoint**: `/images`
 - **Method**: POST
 - **Description**: Upload a photo, and the API will automatically tag and store it.
 - **Input**:
@@ -132,6 +132,7 @@ The data model to be used is as follows:
 Table containing a row for each image stored in the system. It has the following columns:
 
 - `id`: String column (36 characters) corresponding to a unique uuid for each image. It is the **Primary Key**.
+- `size`: Integer indicating the amount of space occupied by the image.
 - `path`: String identifying the path where the image is stored.
 - `date`: String identifying the date the image was created, in `YYYY-MM-DD HH:MM:SS` format.
 
