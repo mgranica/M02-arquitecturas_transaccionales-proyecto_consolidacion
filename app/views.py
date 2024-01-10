@@ -50,10 +50,10 @@ def post_image():
         # decode data
         decoded_data = controller.decode_image(encoded_data)
         # Save image
-        controller.save_image(decoded_data, upload_info["id"])
+        save_path = controller.save_image(decoded_data, upload_info["id"])
         # insert into Pictures Table
         controller.insert_pictures(
-            upload_info["id"], upload_info["path"], upload_info["size"], date
+            upload_info["id"], save_path, upload_info["size"], date
         )
         # insert into Tags Table
         controller.insert_tags(upload_info["id"], tags, date)

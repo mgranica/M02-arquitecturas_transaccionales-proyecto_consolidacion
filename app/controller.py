@@ -75,7 +75,7 @@ def save_image(decoded_data, file_name, extension=".jpg"):
     with open(save_path, mode="wb") as decoded_img:
         decoded_img.write(decoded_data)
     print(f"Image saved to {save_path}")
-    return decoded_data
+    return save_path
 
 
 @exception_handler("Error during tags extraction")
