@@ -63,7 +63,7 @@ def post_image():
             "size": upload_info["size"],
             "date": date,
             "tags": tags,
-            "data": encoded_data[:100],
+            "data": encoded_data,
         }
     except ValueError as e:
         response = make_response(jsonify({"error": str(e)}), 400)
